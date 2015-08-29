@@ -100,6 +100,8 @@ void test_init_params(struct test_params *p)
     p->stream_buffer_count = DEFAULT_STREAM_BUFFERS;
     p->stream_buffer_size = DEFAULT_STREAM_SAMPLES;
     p->timeout_ms = DEFAULT_STREAM_TIMEOUT;
+
+    p->bandwidth = 2500000;
 }
 
 static int init_module(struct bladerf *dev, struct test_params *p,
@@ -108,6 +110,7 @@ static int init_module(struct bladerf *dev, struct test_params *p,
     const char *m_str = m == BLADERF_MODULE_RX ? "RX" : "TX";
     int status;
     unsigned int samplerate_actual;
+    unsigned int bandwidth_actual;
     unsigned int frequency_actual;
 
     status = bladerf_set_sample_rate(dev, m, p->samplerate, &samplerate_actual);
@@ -117,6 +120,21 @@ static int init_module(struct bladerf *dev, struct test_params *p,
                 m_str, bladerf_strerror(status));
         return status;
     }
+
+    status = bladerf_set_bandwidth(dev, m, p->bandwidth, &bandwidth_actual);
+
+    if (status != 0) {
+        log_error("Failed to set %s bandwidth: %s\n",
+                m_str, bladerf_strerror(status));
+        return status;
+    }
+
+    // status = bladerf_get_bandwidth(dev, m, &bandwidth_actual);
+    // if (status != 0) {
+    //     log_error("Failed to read back %s bandwidth: %s\n",
+    //             m_str, bladerf_strerror(status));
+    //     return status;
+    // }
 
     status = bladerf_set_frequency(dev, m, p->frequency);
 
@@ -133,8 +151,8 @@ static int init_module(struct bladerf *dev, struct test_params *p,
         return status;
     }
 
-    log_debug("%s Frequency = %u, %s Samplerate = %u\n",
-              m_str, frequency_actual, m_str, samplerate_actual);
+    log_debug("%s Frequency = %u, %s Samplerate = %u, Bandwidth = %u\n",
+              m_str, frequency_actual, m_str, samplerate_actual,bandwidth_actual);
 
     return status;
 }
@@ -259,10 +277,10 @@ void *rx_task(void *args)
             for(i = 0; i < to_rx; ++i) {
                 magsq[i] = samples[i*2] * samples[i*2] + samples[i*2 + 1] * samples[i*2 + 1];
             }
-            // if (magsq[0] > 8000)
-            // {
-            //    printf("magsq= %d\n", magsq[0] );
-            // }
+            if (magsq[0] > 28000)
+            {
+               printf("magsq= %d\n", magsq[0] );
+            }
 
             
             // n = fwrite(samples, 2 * sizeof(samples[0]), to_rx, p->out_file);

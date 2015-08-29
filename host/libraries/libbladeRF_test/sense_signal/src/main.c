@@ -108,7 +108,7 @@ static void print_usage(const char *argv0)
     printf("Device configuration options:\n");
     printf("    -d. --device <device>       Use the specified device. By default,\n");
     printf("                                any device found will be used.\n");
-    printf("    -f, --frequency <value>     Set the specified frequency. Default = %u.\n", DEFAULT_FREQUENCY);
+    printf("    -f, --frequency <value>     Set the specified frequency. Default = %lu.\n", DEFAULT_FREQUENCY);
     printf("    -s, --samplerate <value>    Set the specified sample rate. Default = %u.\n", DEFAULT_SAMPLERATE);
     printf("    -l, --loopback <mode>       Operate in the specified loopback mode. Options are:\n");
     printf("                                  bb_txlpf_rxvga2, bb_txlpf_rxlpf,\n");

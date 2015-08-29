@@ -26,8 +26,9 @@
 #include <libbladeRF.h>
 
 /* Device config defaults */
-#define DEFAULT_SAMPLERATE      1000000
-#define DEFAULT_FREQUENCY       1000000000
+#define DEFAULT_SAMPLERATE      20000000
+#define DEFAULT_FREQUENCY       2475008000
+
 
 /* Test defaults */
 #define DEFAULT_TX_REPETITIONS  1
@@ -37,7 +38,7 @@
 /* Stream defaults */
 #define DEFAULT_STREAM_XFERS    16
 #define DEFAULT_STREAM_BUFFERS  32
-#define DEFAULT_STREAM_SAMPLES  8192
+#define DEFAULT_STREAM_SAMPLES  4096
 #define DEFAULT_STREAM_TIMEOUT  1000
 
 #define SYNC_TIMEOUT_MS         500
@@ -45,6 +46,7 @@
 struct test_params {
     const char *device_str;
     unsigned int samplerate;
+    unsigned int bandwidth;
     unsigned int frequency;
     bladerf_loopback loopback;
 
