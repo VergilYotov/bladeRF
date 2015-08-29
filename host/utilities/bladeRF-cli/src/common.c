@@ -177,10 +177,9 @@ bool cli_device_is_streaming(struct cli_state *s)
             (rxtx_task_running(s->rx) || rxtx_task_running(s->tx));
 }
 
-static void cli_err_base(struct cli_state *s, bool add_newlines,
-                         const char *pfx, const char *format,
-                         va_list arg_list)
+void cli_err(struct cli_state *s, const char *pfx, const char *format, ...)
 {
+    va_list arg_list;
     char lbuf[81];
     char *err;
 	int ret;
@@ -203,48 +202,21 @@ static void cli_err_base(struct cli_state *s, bool add_newlines,
     /* +7 --> 2 newlines, 4 chars padding, NUL terminator */
     err = calloc(strlen(lbuf) + strlen(pfx) + strlen(format) + 7, 1);
     if (err) {
-
-        if (add_newlines) {
-            strcat(err, "\n");
-        }
-
-        strcat(err, "  ");
+        strcat(err, "\n  ");
         strcat(err, pfx);
         strcat(err, lbuf);
         strcat(err, ": ");
         strcat(err, format);
+        strcat(err, "\n");
 
-        if (add_newlines) {
-            strcat(err, "\n");
-        }
-
-        /* Try to ensure all stdout output has been written */
-        fflush(stdout);
-
+        va_start(arg_list, format);
         vfprintf(stderr, err, arg_list);
+        va_end(arg_list);
         free(err);
     } else {
         /* Just do the best we can if a memory allocation error occurs */
         fprintf(stderr, "\nYikes! Multiple errors occurred!\n");
     }
-}
-
-void cli_err(struct cli_state *s, const char *pfx, const char *format, ...)
-{
-    va_list arg_list;
-
-    va_start(arg_list, format);
-    cli_err_base(s, true, pfx, format, arg_list);
-    va_end(arg_list);
-}
-
-void cli_err_nnl(struct cli_state *s, const char *pfx, const char *format, ...)
-{
-    va_list arg_list;
-
-    va_start(arg_list, format);
-    cli_err_base(s, false, pfx, format, arg_list);
-    va_end(arg_list);
 }
 
 const char * cli_strerror(int error, int lib_error)
@@ -282,9 +254,6 @@ const char * cli_strerror(int error, int lib_error)
 
         case CLI_RET_NOFILE:
             return "File not found";
-
-        case CLI_RET_PERMISSION:
-            return "Insufficient permissions for the requested operation";
 
         /* Other commands shall print out helpful info from within their
          * implementation */
@@ -330,17 +299,10 @@ int expand_and_open(const char *filename, const char *mode, FILE **file)
 
     *file = fopen(expanded_filename, mode);
     if (*file == NULL) {
-        switch (errno) {
-            case ENOENT:
-                status = CLI_RET_NOFILE;
-                break;
-
-            case EACCES:
-                status = CLI_RET_PERMISSION;
-                break;
-
-            default:
-                status = CLI_RET_FILEOP;
+        if (errno == ENOENT) {
+            status = CLI_RET_NOFILE;
+        } else {
+            status = CLI_RET_FILEOP;
         }
     } else {
         status = 0;

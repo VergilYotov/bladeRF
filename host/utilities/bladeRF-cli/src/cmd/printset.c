@@ -25,42 +25,18 @@
 #include "cmd.h"
 #include "conversions.h"
 
-#define PRINTSET_DECL(x) \
-    int print_##x(struct cli_state *, int, char **); int set_##x(struct cli_state *, int, char **);
-
-#define PRINTSET_ENTRY(x, printall_option) { \
+#define PRINTSET_DECL(x) int print_##x(struct cli_state *, int, char **); int set_##x(struct cli_state *, int, char **);
+#define PRINTSET_ENTRY(x) { \
         FIELD_INIT(.print, print_##x), \
         FIELD_INIT(.set, set_##x), \
-        FIELD_INIT(.name, #x), \
-        FIELD_INIT(.pa_option, printall_option), \
+        FIELD_INIT(.name, #x) \
 }
-
-/**
- * Any special actions we should take when printing all values when invoking
- * the 'print' command with no arguments.
- */
-enum printall_option
-{
-    PRINTALL_OPTION_NONE,           /**< No special actions */
-    PRINTALL_OPTION_SKIP,           /**< Skip this entry */
-    PRINTALL_OPTION_APPEND_NEWLINE, /**< Print an extra newline after entry */
-};
 
 /* An entry in the printset table */
 struct printset_entry {
-    /** Function pointer to thing that prints parameter */
-    int (*print)(struct cli_state *s, int argc, char **argv);
-
-    /** Function pointer to setter */
-    int (*set)(struct cli_state *s, int argc, char **argv);
-
-    /** String associated with name */
-    const char *name;
-
-    /**
-     * Additional options when printing this entry as part of the
-     * 'print command' with no options (i.e., print everything) */
-    enum printall_option pa_option;
+    int (*print)(struct cli_state *s, int argc, char **argv);  /*<< Function pointer to thing that prints parameter */
+    int (*set)(struct cli_state *s, int argc, char **argv);    /*<< Function pointer to setter */
+    const char *name;                   /*<< String associated with parameter */
 };
 
 /* Declarations */
@@ -82,21 +58,21 @@ PRINTSET_DECL(xb_gpio_dir)
 
 /* print/set parameter table */
 struct printset_entry printset_table[] = {
-    PRINTSET_ENTRY(bandwidth,   PRINTALL_OPTION_APPEND_NEWLINE),
-    PRINTSET_ENTRY(frequency,   PRINTALL_OPTION_APPEND_NEWLINE),
-    PRINTSET_ENTRY(gpio,        PRINTALL_OPTION_APPEND_NEWLINE),
-    PRINTSET_ENTRY(loopback,    PRINTALL_OPTION_APPEND_NEWLINE),
-    PRINTSET_ENTRY(lnagain,     PRINTALL_OPTION_NONE),
-    PRINTSET_ENTRY(rxvga1,      PRINTALL_OPTION_NONE),
-    PRINTSET_ENTRY(rxvga2,      PRINTALL_OPTION_NONE),
-    PRINTSET_ENTRY(txvga1,      PRINTALL_OPTION_NONE),
-    PRINTSET_ENTRY(txvga2,      PRINTALL_OPTION_APPEND_NEWLINE),
-    PRINTSET_ENTRY(sampling,    PRINTALL_OPTION_APPEND_NEWLINE),
-    PRINTSET_ENTRY(samplerate,  PRINTALL_OPTION_APPEND_NEWLINE),
-    PRINTSET_ENTRY(trimdac,     PRINTALL_OPTION_APPEND_NEWLINE),
-    PRINTSET_ENTRY(xb_spi,      PRINTALL_OPTION_SKIP),
-    PRINTSET_ENTRY(xb_gpio,     PRINTALL_OPTION_NONE),
-    PRINTSET_ENTRY(xb_gpio_dir, PRINTALL_OPTION_NONE),
+    PRINTSET_ENTRY(bandwidth),
+    PRINTSET_ENTRY(frequency),
+    PRINTSET_ENTRY(gpio),
+    PRINTSET_ENTRY(loopback),
+    PRINTSET_ENTRY(lnagain),
+    PRINTSET_ENTRY(rxvga1),
+    PRINTSET_ENTRY(rxvga2),
+    PRINTSET_ENTRY(txvga1),
+    PRINTSET_ENTRY(txvga2),
+    PRINTSET_ENTRY(sampling),
+    PRINTSET_ENTRY(samplerate),
+    PRINTSET_ENTRY(trimdac),
+    PRINTSET_ENTRY(xb_spi),
+    PRINTSET_ENTRY(xb_gpio),
+    PRINTSET_ENTRY(xb_gpio_dir),
 
     /* End of table marked by entry with NULL/empty fields */
     { FIELD_INIT(.print, NULL), FIELD_INIT(.set, NULL), FIELD_INIT(.name, "") }
@@ -147,13 +123,15 @@ int print_bandwidth(struct cli_state *state, int argc, char **argv)
         return CLI_RET_NARGS;
     }
 
+    printf( "\n" ) ;
+
     if( argc == 2 || module == BLADERF_MODULE_RX ) {
         status =  bladerf_get_bandwidth( state->dev, BLADERF_MODULE_RX, &bw );
         if (status < 0) {
             state->last_lib_error = status;
             rv = CLI_RET_LIBBLADERF;
         } else {
-            printf( "  RX Bandwidth: %9u Hz\n", bw );
+            printf( "  RX Bandwidth: %9uHz\n", bw );
         }
     }
 
@@ -163,9 +141,11 @@ int print_bandwidth(struct cli_state *state, int argc, char **argv)
             state->last_lib_error = status;
             rv = CLI_RET_LIBBLADERF;
         } else {
-            printf( "  TX Bandwidth: %9u Hz\n", bw );
+            printf( "  TX Bandwidth: %9uHz\n", bw );
         }
     }
+
+    printf( "\n" );
 
     return rv;
 }
@@ -180,10 +160,12 @@ int set_bandwidth(struct cli_state *state, int argc, char **argv)
 
     /* Check for extended help */
     if( argc == 2 ) {
+        printf( "\n" );
         printf( "Usage: set bandwidth [module] <bandwidth>\n" );
         printf( "\n" );
         printf( "    module         Optional argument to set single module bandwidth\n" );
         printf( "    bandwidth      Bandwidth in Hz - will be rounded up to closest bandwidth\n" );
+        printf( "\n" );
     }
 
     /* Check for optional module */
@@ -226,6 +208,8 @@ int set_bandwidth(struct cli_state *state, int argc, char **argv)
     /* Problem parsing arguments? */
     if( argc > 2 && rv == CLI_RET_OK ) {
 
+        printf( "\n" );
+
         /* Lack of option, so set both or RX only */
         if( argc == 3 || module == BLADERF_MODULE_RX ) {
             status = bladerf_set_bandwidth( state->dev, BLADERF_MODULE_RX,
@@ -235,7 +219,7 @@ int set_bandwidth(struct cli_state *state, int argc, char **argv)
                 state->last_lib_error = status;
                 rv = CLI_RET_LIBBLADERF;
             } else {
-                printf( "  Set RX bandwidth - req:%9u Hz actual:%9u Hz\n",
+                printf( "  Set RX bandwidth - req:%9uHz actual:%9uHz\n",
                         bw, actual );
             }
         }
@@ -249,11 +233,12 @@ int set_bandwidth(struct cli_state *state, int argc, char **argv)
                 state->last_lib_error = status;
                 rv = CLI_RET_LIBBLADERF;
             } else {
-                printf( "  Set TX bandwidth - req:%9u Hz actual:%9u Hz\n",
+                printf( "  Set TX bandwidth - req:%9uHz actual:%9uHz\n",
                         bw, actual );
             }
         }
 
+        printf( "\n" );
     }
 
 
@@ -287,7 +272,11 @@ int print_frequency(struct cli_state *state, int argc, char **argv)
                 state->last_lib_error = status;
                 rv = CLI_RET_LIBBLADERF;
             } else {
-                printf( "  RX Frequency: %10u Hz\n", freq );
+                printf( "\n" );
+                printf( "  RX Frequency: %10uHz\n", freq );
+                if( argc == 3 ) {
+                    printf( "\n" );
+                }
             }
         }
 
@@ -297,7 +286,11 @@ int print_frequency(struct cli_state *state, int argc, char **argv)
                 state->last_lib_error = status;
                 rv = CLI_RET_LIBBLADERF;
             } else {
-                printf( "  TX Frequency: %10u Hz\n", freq );
+                if( argc == 3 ) {
+                    printf( "\n" );
+                }
+                printf( "  TX Frequency: %10uHz\n", freq );
+                printf( "\n" );
             }
         }
     }
@@ -337,6 +330,8 @@ int set_frequency(struct cli_state *state, int argc, char **argv)
             cli_err(state, argv[0], "Invalid frequency (%s)\n", argv[argc - 1]);
             rv = CLI_RET_INVPARAM;
         } else {
+
+            printf( "\n" );
 
             /* Change RX frequency */
             if( argc == 3 || module == BLADERF_MODULE_RX ) {
@@ -378,6 +373,7 @@ int set_frequency(struct cli_state *state, int argc, char **argv)
                 }
             }
 
+            printf( "\n" );
         }
     }
 
@@ -395,7 +391,9 @@ int print_gpio(struct cli_state *state, int argc, char **argv)
         state->last_lib_error = status;
         rv = CLI_RET_LIBBLADERF;
     } else {
+        printf( "\n" );
         printf( "  GPIO: 0x%8.8x\n", val );
+        printf( "\n" );
         printf( "    %-20s%-10s\n", "LMS Enable:", val&0x01 ? "Enabled" : "Reset" ); // Active low
         printf( "    %-20s%-10s\n", "LMS RX Enable:", val&0x02 ? "Enabled" : "Disabled" );
         printf( "    %-20s%-10s\n", "LMS TX Enable:", val&0x04 ? "Enabled" : "Disabled" );
@@ -423,6 +421,7 @@ int print_gpio(struct cli_state *state, int argc, char **argv)
             case 3: printf( "Whitened Entropy\n" ); break;
             default : printf( "????\n" ); break;
         }
+        printf( "\n" );
     }
 
     return rv;
@@ -459,7 +458,9 @@ int print_xb_gpio(struct cli_state *state, int argc, char **argv) {
         state->last_lib_error = status;
         rv = CLI_RET_LIBBLADERF;
     } else {
-        printf( "  Expansion GPIO: 0x%8.8x\n", val );
+        printf( "\n" );
+        printf( "Expansion GPIO: 0x%8.8x\n", val );
+        printf( "\n" );
     }
     return rv;
 }
@@ -495,7 +496,9 @@ int print_xb_gpio_dir(struct cli_state *state, int argc, char **argv) {
         state->last_lib_error = status;
         rv = CLI_RET_LIBBLADERF;
     } else {
-        printf( "  Expansion GPIO direction: 0x%8.8x (1=output, 0=input)\n", val );
+        printf( "\n" );
+        printf( "Expansion GPIO direction (1=output): 0x%8.8x\n", val );
+        printf( "\n" );
     }
     return rv;
 }
@@ -534,19 +537,19 @@ int print_lnagain(struct cli_state *state, int argc, char **argv)
     } else {
         switch (gain) {
             case BLADERF_LNA_GAIN_MAX:
-                printf("  RXLNA Gain:    6 dB\n");
+                printf("\n  LNA Gain: 6 dB\n\n");
                 break;
 
             case BLADERF_LNA_GAIN_MID:
-                printf("  RXLNA Gain:    3 dB\n");
+                printf("\n  LNA Gain: 3 dB\n\n");
                 break;
 
             case BLADERF_LNA_GAIN_BYPASS:
-                printf("  RXLNA Gain:    0 dB\n");
+                printf("\n  LNA Gain: 0 dB\n\n");
                 break;
 
             default:
-                printf("  RXLNA Gain:    Unknown (%d)\n", gain);
+                printf("\n  LNA Gain: Unknown (%d)\n\n", gain);
                 break;
 
         }
@@ -601,39 +604,39 @@ int print_loopback(struct cli_state *state, int argc, char **argv)
 
     switch (loopback) {
         case BLADERF_LB_BB_TXLPF_RXVGA2:
-            printf("  Loopback mode: bb_txlpf_rxvga2\n");
+            printf("\n  Loopback mode: bb_txlpf_rxvga2\n\n");
             break;
 
         case BLADERF_LB_BB_TXLPF_RXLPF:
-            printf("  Loopback mode: bb_txlpf_rxlpf\n");
+            printf("\n  Loopback mode: bb_txlpf_rxlpf\n\n");
             break;
 
         case BLADERF_LB_BB_TXVGA1_RXVGA2:
-            printf("  Loopback mode: bb_txvga1_rxvga2\n");
+            printf("\n  Loopback mode: bb_txvga1_rxvga2\n\n");
             break;
 
         case BLADERF_LB_BB_TXVGA1_RXLPF:
-            printf("  Loopback mode: bb_txvga1_rxlpf\n");
+            printf("\n  Loopback mode: bb_txvga1_rxlpf\n\n");
             break;
 
         case BLADERF_LB_RF_LNA1:
-            printf("  Loopback mode: rf_lna1\n");
+            printf("\n  Loopback mode: rf_lna1\n\n");
             break;
 
         case BLADERF_LB_RF_LNA2:
-            printf("  Loopback mode: rf_lna2\n");
+            printf("\n  Loopback mode: rf_lna2\n\n");
             break;
 
         case BLADERF_LB_RF_LNA3:
-            printf("  Loopback mode: rf_lna3\n");
+            printf("\n  Loopback mode: rf_lna3\n\n");
             break;
 
         case BLADERF_LB_FIRMWARE:
-            printf("  Loopback mode: firmware\n");
+            printf("\n  Loopback mode: firmware\n\n");
             break;
 
         case BLADERF_LB_NONE:
-            printf("  Loopback mode: none\n");
+            printf("\n  Loopback mode: none\n\n");
             break;
 
         default:
@@ -651,6 +654,7 @@ int set_loopback(struct cli_state *state, int argc, char **argv)
     bladerf_loopback loopback;
 
     if (argc == 2) {
+        printf("\n");
         printf("Usage: %s %s <mode>, where <mode> is one of the following:\n",
                argv[0], argv[1]);
         printf("\n");
@@ -663,6 +667,7 @@ int set_loopback(struct cli_state *state, int argc, char **argv)
         printf("  rf_lna3           RF loopback: TXMIX --> RXMIX via LNA3 path.\n");
         printf("  firmware          Firmware-based sample loopback.\n");
         printf("  none              Loopback disabled - Normal operation.\n");
+        printf("\n");
 
         return CLI_RET_INVPARAM;
 
@@ -712,7 +717,9 @@ int print_rxvga1(struct cli_state *state, int argc, char **argv)
         state->last_lib_error = status;
         rv = CLI_RET_LIBBLADERF;
     } else {
-        printf( "  RXVGA1 Gain: %3d dB\n", gain );
+        printf( "\n" );
+        printf( "  RXVGA1 Gain: %3ddB\n", gain );
+        printf( "\n" );
     }
 
     return rv;
@@ -750,7 +757,9 @@ int print_rxvga2(struct cli_state *state, int argc, char **argv)
         state->last_lib_error = status;
         rv = CLI_RET_LIBBLADERF;
     } else {
-        printf( "  RXVGA2 Gain: %3d dB\n", gain );
+        printf( "\n" );
+        printf( "  RXVGA2 Gain: %3ddB\n", gain );
+        printf( "\n" );
     }
 
     return rv;
@@ -795,7 +804,7 @@ int print_samplerate(struct cli_state *state, int argc, char **argv)
             status = CLI_RET_INVPARAM;
         } else {
             status = bladerf_get_rational_sample_rate(state->dev, module, &rate);
-            printf("  %s sample rate: %"PRIu64" %"PRIu64"/%"PRIu64"\n",
+            printf("\n  %s sample rate: %"PRIu64" %"PRIu64"/%"PRIu64"\n\n",
                    module == BLADERF_MODULE_RX ? "RX" : "TX",
                    rate.integer, rate.num, rate.den);
         }
@@ -809,10 +818,10 @@ int print_samplerate(struct cli_state *state, int argc, char **argv)
                                                 BLADERF_MODULE_TX, &tx_rate);
 
             if (!status) {
-                printf("  RX sample rate: %"PRIu64" %"PRIu64"/%"PRIu64"\n",
+                printf("\n  RX sample rate: %"PRIu64" %"PRIu64"/%"PRIu64"\n",
                        rate.integer, rate.num, rate.den);
 
-                printf("  TX sample rate: %"PRIu64" %"PRIu64"/%"PRIu64"\n",
+                printf("  TX sample rate: %"PRIu64" %"PRIu64"/%"PRIu64"\n\n",
                        tx_rate.integer, tx_rate.num, tx_rate.den);
             } else {
                 state->last_lib_error = status;
@@ -845,7 +854,8 @@ int set_samplerate(struct cli_state *state, int argc, char **argv)
             rv = CLI_RET_INVPARAM;
         }
     } else if( argc != 3 && argc != 5 ) {
-        printf( "Usage:\n\n" );
+        printf( "Usage:\n" );
+        printf( "\n" );
         printf( "  set samplerate [rx|tx] [integer [numerator denominator]]\n" );
         printf( "\n" );
         printf( "Setting the sample rate first addresses an optional RX or TX module.\n" );
@@ -1016,15 +1026,15 @@ int print_sampling( struct cli_state *state, int argc, char **argv)
         } else {
             switch (mode) {
                 case BLADERF_SAMPLING_EXTERNAL:
-                    printf("  Sampling: External\n");
+                    printf("\n  Sampling: External\n\n");
                     break;
 
                 case BLADERF_SAMPLING_INTERNAL:
-                    printf("  Sampling: Internal\n");
+                    printf("\n  Sampling: Internal\n\n");
                     break;
 
                 default:
-                    printf("  Sampling: Unknown\n");
+                    printf("\n  Sampling: Unknown\n\n");
             }
         }
     }
@@ -1049,8 +1059,10 @@ int print_trimdac(struct cli_state *state, int argc, char **argv)
         return CLI_RET_LIBBLADERF;
     }
 
-    printf("  Current VCTCXO trim: 0x%04x\n", curr);
-    printf("  Stored VCTCXO trim:  0x%04x\n", cal);
+    printf("\n");
+    printf("  Current VCTCXO trim DAC value: 0x%04x\n", curr);
+    printf("  Calibration data in flash:     0x%04x\n", cal);
+    printf("\n");
 
     return 0;
 }
@@ -1081,7 +1093,7 @@ int set_trimdac(struct cli_state *state, int argc, char **argv)
 
 int print_xb_spi(struct cli_state *state, int argc, char **argv)
 {
-    cli_err_nnl(state, "Error", "XB SPI is currently write-only.\n");
+    /* All of the SPI devices so far are write-only */
     return CLI_RET_OK;
 }
 
@@ -1119,7 +1131,9 @@ int print_txvga1(struct cli_state *state, int argc, char **argv)
         state->last_lib_error = status;
         rv = CLI_RET_LIBBLADERF;
     } else {
-        printf( "  TXVGA1 Gain: %3d dB\n", gain ) ;
+        printf( "\n" );
+        printf( "  TXVGA1 Gain: %ddB\n", gain ) ;
+        printf( "\n" );
     }
 
     return rv;
@@ -1163,7 +1177,9 @@ int print_txvga2(struct cli_state *state, int argc, char **argv)
         state->last_lib_error = status;
         rv = CLI_RET_LIBBLADERF;
     } else {
-        printf( "  TXVGA2 Gain: %3d dB\n", gain );
+        printf( "\n" );
+        printf( "  TXVGA2 Gain: %ddB\n", gain );
+        printf( "\n" );
     }
     return rv;
 }
@@ -1235,9 +1251,6 @@ int cmd_print(struct cli_state *state, int argc, char **argv)
 {
     int rv = CLI_RET_OK;
     struct printset_entry *entry = NULL;
-    char *empty_argv[2];
-
-    printf( "\n" );
 
     if( argc > 1 ) {
 
@@ -1248,48 +1261,12 @@ int cmd_print(struct cli_state *state, int argc, char **argv)
             rv = entry->print(state, argc, argv);
         } else {
             /* Incorrect parameter to print */
-            cli_err_nnl(state, argv[0], "Invalid parameter (%s)\n", argv[1]);
+            cli_err(state, argv[0], "Invalid parameter (%s)\n", argv[1]);
             rv = CLI_RET_INVPARAM;
         }
-
     } else {
-        /* We fake an argumentless argv with each command's name
-           supplied as argv[1]. */
-        empty_argv[0] = argv[0];
-
-        entry = &printset_table[0];
-
-        while (entry->print != NULL) {
-            if (entry->pa_option != PRINTALL_OPTION_SKIP) {
-                empty_argv[1] = (char *) entry->name;
-
-                rv = entry->print(state, 2, (char **)empty_argv);
-                if (rv != CLI_RET_OK) {
-                    if (cli_fatal(rv)) {
-                        return rv;
-                    }
-
-                    /* Print error messages here so that we can continue
-                     * onto the remaining items */
-                    cli_err_nnl(state, empty_argv[1], "%s\n",
-                                cli_strerror(rv, state->last_lib_error));
-
-                    /* We've reported this, don't pass it back up
-                     * the call stack */
-                    rv = 0;
-                }
-
-                if (entry->pa_option == PRINTALL_OPTION_APPEND_NEWLINE) {
-                    printf("\n");
-                }
-            }
-
-            entry++;
-        }
+        rv = CLI_RET_NARGS;
     }
-
-    printf( "\n" );
-
     return rv;
 }
 

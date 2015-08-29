@@ -540,11 +540,10 @@ Example:
 \f[C]poke\ lms\ ...\f[]
 .SS print
 .PP
-Usage: \f[C]print\ [parameter]\f[]
+Usage: \f[C]print\ <param>\f[]
 .PP
 The print command takes a parameter to print.
-Available parameters are listed below.
-If no paremeter is specified, all parameters are printed.
+The parameter is one of:
 .PP
 .TS
 tab(@);
@@ -578,7 +577,7 @@ T}
 T{
 \f[C]lnagain\f[]
 T}@T{
-Gain setting of the RX LNA, in dB
+Gain setting of the LNA, in dB
 T}
 T{
 \f[C]rxvga1\f[]
@@ -614,16 +613,6 @@ T{
 \f[C]trimdac\f[]
 T}@T{
 VCTCXO Trim DAC settings
-T}
-T{
-\f[C]xb_gpio\f[]
-T}@T{
-Expansion board GPIO values
-T}
-T{
-\f[C]xb_gpio_dir\f[]
-T}@T{
-Expansion board GPIO direction (1=output, 0=input)
 T}
 .TE
 .SS probe
@@ -961,10 +950,10 @@ This prerequisite alleviates the need for this program to perform range
 checks in time\-sensitive callbacks.
 .SS set
 .PP
-Usage: \f[C]set\ <parameter>\ <arguments>\f[]
+Usage: \f[C]set\ <param>\ <arguments>\f[]
 .PP
 The set command takes a parameter and an arbitrary number of arguments
-for that particular parameter.
+for that particular command.
 The parameter is one of:
 .PP
 .TS
@@ -995,13 +984,13 @@ T{
 \f[C]loopback\f[]
 T}@T{
 Loopback settings.
-Run \[aq]set loopback\[aq] to list modes.
+Run \[aq]set loopback\[aq] for available modes.
 T}
 T{
 \f[C]lnagain\f[]
 T}@T{
-Gain setting of the RX LNA, in dB.
-Values: 0, 3, 6
+Gain setting of the LNA, in dB.
+Valid values: 0, 3, 6
 T}
 T{
 \f[C]rxvga1\f[]
@@ -1041,16 +1030,6 @@ T{
 \f[C]trimdac\f[]
 T}@T{
 VCTCXO Trim DAC settings
-T}
-T{
-\f[C]xb_gpio\f[]
-T}@T{
-Expansion board GPIO values
-T}
-T{
-\f[C]xb_gpio_dir\f[]
-T}@T{
-Expansion board GPIO direction (1=output, 0=input)
 T}
 .TE
 .SS version

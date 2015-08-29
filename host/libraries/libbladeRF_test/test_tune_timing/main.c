@@ -186,6 +186,9 @@ int main(int argc, char *argv[])
         return status;
     }
 
+    printf("Testing changes\n");
+
+
     printf("Re-tuning with fixed frequency...\n");
 
     status = bladerf_set_tuning_mode(dev, BLADERF_TUNING_MODE_HOST);

@@ -48,8 +48,6 @@
 #define CLI_RET_FILEOP      (-10)   /**< File operation failed */
 #define CLI_RET_BUSY        (-11)   /**< Device is currently busy */
 #define CLI_RET_NOFILE      (-12)   /**< File not found */
-#define CLI_RET_PERMISSION  (-13)   /**< Insufficient permissions for the
-                                     *   requested operations */
 #define CLI_RET_CMD_HANDLED (-255)  /**< A command-specific error has occurred,
                                      *   and the associated command has already
                                      *   printed to the user. This should be
@@ -142,7 +140,7 @@ bool cli_device_is_streaming(struct cli_state *s);
 
 /**
  * Print an error message, with a line number, if running from a script.
- * This function adds preceeding and following new lines.
+ *
  *
  * @param   s       CLI state.
  * @param   pfx     Error prefix.
@@ -150,17 +148,6 @@ bool cli_device_is_streaming(struct cli_state *s);
  *
  */
 void cli_err(struct cli_state *s, const char *pfx, const char *format, ...);
-
-/**
- * Print an error message, with a line number, if running from a script.
- * This function DOES NOT add additional newlines. (nnl="now newlines")
- *
- * @param   s       CLI state.
- * @param   pfx     Error prefix.
- * @param   format  Printf-style format string, followed by args
- *
- */
-void cli_err_nnl(struct cli_state *s, const char *pfx, const char *format, ...);
 
 /**
  * @return true if provided return code is fatal, false otherwise

@@ -175,9 +175,7 @@ static int run(struct bladerf *dev, struct app_params *p,
     unsigned int overruns = 0;
     bool prev_iter_overrun = false;
     const unsigned int buf_len = (t->gap == RANDOM_GAP_SIZE) ?
-                                    (128 * 1024) : (unsigned int ) t->gap;
-
-    assert(t->gap <= UINT_MAX);
+                                    (128 * 1024) : t->gap;
 
     samples = calloc(buf_len, 2 * sizeof(int16_t));
     if (samples == NULL) {

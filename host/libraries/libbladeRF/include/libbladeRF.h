@@ -90,8 +90,6 @@ extern "C" {
 #define BLADERF_ERR_QUEUE_FULL  (-15) /**< Could not enqueue data into
                                        *   full queue */
 #define BLADERF_ERR_FPGA_OP     (-16) /**< An FPGA operation reported failure */
-#define BLADERF_ERR_PERMISSION  (-17) /**< Insufficient permissions for the
-                                       *   requested operation */
 
 /** @} (End RETCODES) */
 
@@ -2517,6 +2515,28 @@ int CALL_CONV bladerf_si5338_read(struct bladerf *dev,
 API_EXPORT
 int CALL_CONV bladerf_si5338_write(struct bladerf *dev,
                                    uint8_t address, uint8_t val);
+
+/**
+ * Set frequency for TX clocks
+ *
+ * @param   dev         Device handle
+ * @param   freq        Desired TX frequency in Hz
+ *
+ * @return 0 on success, value from \ref RETCODES list on failure
+ */
+API_EXPORT
+int CALL_CONV bladerf_si5338_set_tx_freq(struct bladerf *dev, unsigned freq);
+
+/**
+ * Set frequency for RX clocks
+ *
+ * @param   dev         Device handle
+ * @param   freq        Desired RX frequency in Hz
+ *
+ * @return 0 on success, value from \ref RETCODES list on failure
+ */
+API_EXPORT
+int CALL_CONV bladerf_si5338_set_rx_freq(struct bladerf *dev, unsigned freq);
 
 /**
  * This structure is used to directly apply DC calibration register values to
