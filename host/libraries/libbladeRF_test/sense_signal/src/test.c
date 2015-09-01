@@ -361,7 +361,8 @@ void *tx_task(void *arg)
     unsigned int to_tx;
     struct task_args *task = (struct task_args*) arg;
     struct test_params *p = task->p;
-    bool done = false;
+    bool done_rx = false;
+    bool done_tx = false;
 
     int16_t *samples_rx;
     int32_t *magsq;
@@ -428,14 +429,14 @@ void *tx_task(void *arg)
 
     /* This assumption is made with the below cast */
     assert(p->block_size < UINT_MAX);
-    while (!done && !task->quit) {
+    while (!done_rx && !task->quit) {
         to_rx = (unsigned int) u64_min(p->block_size, p->rx_count);
         status = bladerf_sync_rx(task->dev, samples_rx, to_rx, NULL,
                                  SYNC_TIMEOUT_MS);
 
         if (status != 0) {
             log_error("RX failed: %s\n", bladerf_strerror(status));
-            done = true;
+            done_rx = true;
         } else {
             log_verbose("RX'd %llu samples.\n", (unsigned long long)to_rx);
 
@@ -443,7 +444,15 @@ void *tx_task(void *arg)
 
             if (magsq[0] > 28000) {
                 printf("magsq= %d\n", magsq[0] );
-                while (!done && !task->quit) {
+
+                // pthread_mutex_lock(task->dev_lock);
+                // status = bladerf_enable_module(task->dev, BLADERF_MODULE_RX, false);
+                // pthread_mutex_unlock(task->dev_lock);
+                // if (status != 0) {
+                //     log_error("Failed to disable RX module: %s\n", bladerf_strerror(status));
+                // }
+
+                while (!done_tx && !task->quit) {
                     to_tx = (unsigned int) fread(samples, 2 * sizeof(samples[0]),
                                                  p->block_size, p->in_file);
 
@@ -453,7 +462,7 @@ void *tx_task(void *arg)
 
                         if (status != 0) {
                             log_error("TX failed: %s\n", bladerf_strerror(status));
-                            done = true;
+                            done_tx = true;
                         }
 
                     } else {
@@ -462,13 +471,20 @@ void *tx_task(void *arg)
 
                             if (fseek(p->in_file, 0, SEEK_SET) == -1) {
                                 perror("fseek");
-                                done = true;
+                                done_tx = true;
                             }
                         } else {
-                            done = true;
+                            done_tx = true;
                         }
                     }
                 }
+                // pthread_mutex_lock(task->dev_lock);
+                // status = bladerf_enable_module(task->dev, BLADERF_MODULE_RX, true);
+                // pthread_mutex_unlock(task->dev_lock);
+                // if (status != 0) {
+                //     log_error("Failed to enable RX module: %s\n", bladerf_strerror(status));
+                //     goto tx_task_out;
+                // }
             }
         }
     }
