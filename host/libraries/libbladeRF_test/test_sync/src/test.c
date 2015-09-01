@@ -168,6 +168,12 @@ static struct bladerf * initialize_device(struct test_params *p)
                       bladerf_strerror(status));
             goto initialize_device_out;
         }
+		/*printf("setting max RX gain\n");
+		status = bladerf_set_gain(dev, BLADERF_MODULE_RX, 100);
+		if (status != 0) {
+	        log_error("Failed to set gain: %s\n", bladerf_strerror(status));
+ 	       goto initialize_device_out;
+ 	   }*/
     }
 
     if (p->in_file) {
@@ -177,6 +183,12 @@ static struct bladerf * initialize_device(struct test_params *p)
                       bladerf_strerror(status));
             goto initialize_device_out;
         }
+		printf("setting max TX gain\n");
+		status = bladerf_set_gain(dev, BLADERF_MODULE_TX, 55);
+    	if (status != 0) {
+	        log_error("Failed to set gain: %s\n", bladerf_strerror(status));
+ 	       goto initialize_device_out;
+ 	   }
     }
 
     status = bladerf_set_loopback(dev, p->loopback);

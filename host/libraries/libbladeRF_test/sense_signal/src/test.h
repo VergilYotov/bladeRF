@@ -26,13 +26,16 @@
 #include <libbladeRF.h>
 
 /* Device config defaults */
-#define DEFAULT_SAMPLERATE      20000000
+#define DEFAULT_RX_SAMPLERATE   20000000
+#define DEFAULT_RX_BANDWIDTH    2500000
+#define DEFAULT_TX_SAMPLERATE   20000000
+#define DEFAULT_TX_BANDWIDTH    20000000
 #define DEFAULT_FREQUENCY       2475008000
 
 
 /* Test defaults */
-#define DEFAULT_TX_REPETITIONS  1
-#define DEFAULT_RX_COUNT        10000000
+#define DEFAULT_TX_REPETITIONS  1000
+#define DEFAULT_RX_COUNT        80000000
 #define DEFAULT_BLOCK_SIZE      2048
 
 /* Stream defaults */
@@ -45,8 +48,10 @@
 
 struct test_params {
     const char *device_str;
-    unsigned int samplerate;
-    unsigned int bandwidth;
+    unsigned int rx_samplerate;
+    unsigned int rx_bandwidth;
+    unsigned int tx_samplerate;
+    unsigned int tx_bandwidth;
     unsigned int frequency;
     bladerf_loopback loopback;
 

@@ -109,7 +109,6 @@ static void print_usage(const char *argv0)
     printf("    -d. --device <device>       Use the specified device. By default,\n");
     printf("                                any device found will be used.\n");
     printf("    -f, --frequency <value>     Set the specified frequency. Default = %lu.\n", DEFAULT_FREQUENCY);
-    printf("    -s, --samplerate <value>    Set the specified sample rate. Default = %u.\n", DEFAULT_SAMPLERATE);
     printf("    -l, --loopback <mode>       Operate in the specified loopback mode. Options are:\n");
     printf("                                  bb_txlpf_rxvga2, bb_txlpf_rxlpf,\n");
     printf("                                  bb_txvga1_rxvga1, bb_txvga1_rxlpf,\n");
@@ -194,18 +193,6 @@ int handle_cmdline(int argc, char *argv[], struct test_params *p)
                 p->device_str = strdup(optarg);
                 if (p->device_str == NULL) {
                     perror("strdup");
-                    return -1;
-                }
-                break;
-
-            case 's':
-                p->samplerate = str2uint_suffix(optarg,
-                                                SAMPLERATE_MIN, SAMPLERATE_MAX,
-                                                freq_suffixes,
-                                                num_freq_suffixes,
-                                                &ok);
-                if (!ok) {
-                    log_error("Invalid sample rate: %s\n", optarg);
                     return -1;
                 }
                 break;
@@ -334,10 +321,6 @@ int handle_cmdline(int argc, char *argv[], struct test_params *p)
 
     if (p->frequency == 0) {
         p->frequency = DEFAULT_FREQUENCY;
-    }
-
-    if (p->samplerate == 0) {
-        p->samplerate = DEFAULT_SAMPLERATE;
     }
 
     if (p->tx_repetitions == 0) {
